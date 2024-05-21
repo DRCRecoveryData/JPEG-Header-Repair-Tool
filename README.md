@@ -31,11 +31,11 @@ This Python script facilitates the repair of corrupted JPEG file headers, specif
 
 ### How to Run
 
-1. Navigate to the directory where the script `repair_jpeg_header.py` is located.
+1. Navigate to the directory where the script `jpegheaderrepair.py` is located.
 
 2. Run the script with Python:
    ```bash
-   python repair_jpeg_header.py
+   python jpegheaderrepair.py
    ```
 
 3. Follow the prompts to input paths to the reference JPEG file and the folder containing corrupted JPEG files.
@@ -45,7 +45,7 @@ This Python script facilitates the repair of corrupted JPEG file headers, specif
 ### Example
 
 ```bash
-python repair_jpeg_header.py
+python jpegheaderrepair.py
 Enter the path to the reference JPEG file: path/to/reference.jpg
 Enter the path to the folder containing corrupted JPEG files: path/to/corrupted_folder
 ```
