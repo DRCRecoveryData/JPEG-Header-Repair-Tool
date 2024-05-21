@@ -29,11 +29,6 @@ This Python script facilitates the repair of corrupted JPEG file headers, specif
    cd jpeg-header-repair-tool
    ```
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
 ### How to Run
 
 1. Navigate to the directory where the script `repair_jpeg_header.py` is located.
