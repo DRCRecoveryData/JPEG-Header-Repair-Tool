@@ -1,6 +1,7 @@
 import os
 import math
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 
 def find_last_ffda_segment(file_path):
     with open(file_path, 'rb') as file:
@@ -25,17 +26,7 @@ def calculate_entropy(data):
 
     return entropy
 
-def repair_jpeg(reference_path, corrupted_path, output_dir):
-    # Ensure output directory exists
-    os.makedirs(output_dir, exist_ok=True)
-
-    try:
-        # Find the data from offset 0 to the last FFDA segment + 12 bytes in the reference JPEG file
-        reference_segment = find_last_ffda_segment(reference_path)
-    except ValueError as e:
-        print(f"Error with reference file {reference_path}: {e}")
-        return
-
+def repair_jpeg(reference_segment, corrupted_path, output_dir):
     # Read the corrupted JPEG file
     try:
         with open(corrupted_path, 'rb') as file:
@@ -93,15 +84,23 @@ def repair_jpeg(reference_path, corrupted_path, output_dir):
         print("Render Error: Error occurred during rendering due to corruption in JPEG bitstream.")
 
 def process_folder(reference_jpeg, corrupted_folder, output_directory):
-    # Get a list of all JPEG files in the corrupted folder
-    corrupted_files = [f for f in os.listdir(corrupted_folder) if f.lower().endswith('.jpg') or f.lower().endswith('.jpeg')]
+    # Ensure output directory exists
+    os.makedirs(output_directory, exist_ok=True)
 
-    for corrupted_file in corrupted_files:
-        corrupted_path = os.path.join(corrupted_folder, corrupted_file)
-        try:
-            repair_jpeg(reference_jpeg, corrupted_path, output_directory)
-        except ValueError as e:
-            print(f"Error processing {corrupted_file}: {e}")
+    # Load the reference segment once to avoid repeated I/O operations
+    try:
+        reference_segment = find_last_ffda_segment(reference_jpeg)
+    except ValueError as e:
+        print(f"Error with reference file {reference_jpeg}: {e}")
+        return
+
+    corrupted_files = [f for f in os.listdir(corrupted_folder) if f.lower().endswith(('.jpg', '.jpeg'))]
+    
+    # Use a ThreadPoolExecutor to process files in parallel
+    with ThreadPoolExecutor() as executor:
+        for corrupted_file in corrupted_files:
+            corrupted_path = os.path.join(corrupted_folder, corrupted_file)
+            executor.submit(repair_jpeg, reference_segment, corrupted_path, output_directory)
 
 if __name__ == "__main__":
     # Prompt the user for the paths
