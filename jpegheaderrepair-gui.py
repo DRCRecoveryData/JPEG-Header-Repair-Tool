@@ -4,7 +4,6 @@ from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLa
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 import math
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import threading
 
 # Global lock for synchronized printing
@@ -134,6 +133,7 @@ class RepairWorker(QThread):
         corrupted_files = [f for f in os.listdir(self.corrupted_folder) if f.lower().endswith(('.jpg', '.jpeg'))]
         total_files = len(corrupted_files)
         files_processed = 0
+        progress_step = 100 / total_files
 
         for corrupted_file in corrupted_files:
             corrupted_path = os.path.join(self.corrupted_folder, corrupted_file)
@@ -141,8 +141,8 @@ class RepairWorker(QThread):
             repair_result = repair_jpeg(reference_segment, corrupted_path, self.output_folder)
             self.log_updated.emit(repair_result)
             files_processed += 1
-            progress = (files_processed / total_files) * 100
-            self.progress_updated.emit(progress)
+            progress = files_processed * progress_step
+            self.progress_updated.emit(int(progress))
 
         self.repair_finished.emit("Repair process completed.")
 
