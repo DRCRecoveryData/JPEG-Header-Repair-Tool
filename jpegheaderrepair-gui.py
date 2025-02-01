@@ -2,12 +2,7 @@ import sys
 import os
 from PyQt6.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QLabel, QLineEdit, QFileDialog, QProgressBar, QTextEdit, QMessageBox
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-import math
-from collections import Counter
 import threading
-
-# Global lock for synchronized printing
-print_lock = threading.Lock()
 
 class JPEGHeaderTool(QWidget):
     def __init__(self):
@@ -154,39 +149,21 @@ def find_last_ffda_segment(file_path):
             raise ValueError(f"No FFDA marker found in {file_path}")
         return data[:last_ffda_index + 14]
 
-def calculate_entropy(data):
-    """Calculate the Shannon entropy of the data."""
-    if not data:
-        return 0
-
-    byte_counts = Counter(data)
-    total_bytes = len(data)
-    entropy = 0
-
-    for count in byte_counts.values():
-        probability = count / total_bytes
-        entropy -= probability * math.log2(probability)
-
-    return entropy
-
 def repair_jpeg(reference_segment, corrupted_path, output_dir):
     # Read the corrupted JPEG file
     try:
         with open(corrupted_path, 'rb') as file:
             corrupted_data = file.read()
     except IOError as e:
-        with print_lock:
-            return f"File access error with {corrupted_path}: {e}"
+        return f"File access error with {corrupted_path}: {e}"
 
     if len(corrupted_data) == 0:
-        with print_lock:
-            return f"File size error: {corrupted_path} is 0 bytes. Cannot be repaired."
+        return f"File size error: {corrupted_path} is 0 bytes. Cannot be repaired."
 
     # Find the last FFDA segment + 12 bytes in the corrupted JPEG file
     last_ffda_index_corrupted = corrupted_data.rfind(b'\xff\xda')
     if last_ffda_index_corrupted == -1:
-        with print_lock:
-            return f"No JPEG SOI: No FFDA marker found in {corrupted_path}."
+        return f"No JPEG SOI: No FFDA marker found in {corrupted_path}."
 
     # Data after the last FFDA + 12 bytes in the corrupted JPEG file
     corrupted_tail = corrupted_data[last_ffda_index_corrupted + 14:]
@@ -200,29 +177,10 @@ def repair_jpeg(reference_segment, corrupted_path, output_dir):
     try:
         with open(repaired_path, 'wb') as repaired_file:
             repaired_file.write(repaired_data)
-        with print_lock:
-            repair_log = f"Repaired file saved to: {repaired_path}\n"
-            entropy = calculate_entropy(repaired_data)
-            repair_log += f"Entropy of repaired file: {entropy:.2f}\n"
-            repair_log += "\nList of errors:\n"
-            if len(corrupted_data) == 0:
-                repair_log += f"Filesize error: {corrupted_path} is 0 bytes. Cannot be repaired.\n"
-            if entropy < 7.60:
-                repair_log += "Entropy too low: File does not contain sufficient JPEG data. Possibly repairable with a reference file.\n"
-            if entropy > 7.99:
-                repair_log += "Entropy too high: File is likely encrypted. JPEG repair cannot decrypt encrypted files.\n"
-            if last_ffda_index_corrupted == -1:
-                repair_log += "No JPEG SOI: SOI (Start of Image) marker (FF D8) not detected. The file may not have a valid JPEG header.\n"
-            if b"Error while parsing" in repaired_data:
-                repair_log += "Error while parsing: Error occurred during parsing. This usually indicates severe corruption.\n"
-            if b"Invalid Markers" in repaired_data:
-                repair_log += "Invalid Markers: Invalid JPEG markers detected. Typically indicates widespread corruption.\n"
-            if b"Render Error" in repaired_data:
-                repair_log += "Render Error: Error occurred during rendering due to corruption in JPEG bitstream.\n"
-            return repair_log
+        repair_log = f"Repaired file saved to: {repaired_path}\n"
+        return repair_log
     except IOError as e:
-        with print_lock:
-            return f"File save error: Cannot save repaired file to {repaired_path}: {e}"
+        return f"File save error: Cannot save repaired file to {repaired_path}: {e}"
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
