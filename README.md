@@ -11,7 +11,7 @@ This Python script facilitates the repair of corrupted JPEG file headers, specif
 
 - **Header Reconstruction:** Automatically repairs missing or corrupted SOI markers and other essential headers based on a reference JPEG file.
 - **Error Handling:** Detects and reports common issues such as missing markers, invalid marker placements, or malformed headers.
-- **Entropy Analysis:** Calculates entropy to assess the integrity of repaired JPEG files and provides insights into potential data loss or corruption.
+- **EXIF Data Removal:** Removes EXIF data to fix certain types of corruption.
 - **Batch Processing:** Supports batch processing of multiple JPEG files within a specified directory for efficient repair operations.
 - **Detailed Error Reporting:** Provides detailed error messages and logs to aid in diagnosing JPEG file corruption and repair outcomes.
 
@@ -24,19 +24,19 @@ This Python script facilitates the repair of corrupted JPEG file headers, specif
 ### Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/jpeg-header-repair-tool.git
-   cd jpeg-header-repair-tool
-   ```
+    ```bash
+    git clone https://github.com/yourusername/jpeg-header-repair-tool.git
+    cd jpeg-header-repair-tool
+    ```
 
 ### How to Run
 
 1. Navigate to the directory where the script `jpegheaderrepair.py` is located.
 
 2. Run the script with Python:
-   ```bash
-   python jpegheaderrepair.py
-   ```
+    ```bash
+    python jpegheaderrepair.py
+    ```
 
 3. Follow the prompts to input paths to the reference JPEG file and the folder containing corrupted JPEG files.
 
